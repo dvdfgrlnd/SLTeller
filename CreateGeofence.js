@@ -13,6 +13,7 @@ import {
     Text,
     View
 } from 'react-native';
+import StationPicker from './StationPicker';
 
 export default class CreateGeofence extends Component {
     constructor(props) {
@@ -51,16 +52,17 @@ export default class CreateGeofence extends Component {
                         key={this.state.markers.title}
                         />
                 </MapView>
+                <StationPicker style={styles.picker} />
             </View>
         );
     }
 
     onMapClick(event) {
+        this.state.location = event.nativeEvent.coordinate;
     }
 
     createGeofence() {
-        var coordinate = event.nativeEvent.coordinate;
-        console.log(coordinate);
+        var coordinate = this.state.location;
         var geo = NativeModules.GeofenceAndroid;
         var id = "geoTwo";
         var lat = coordinate.latitude;
@@ -79,6 +81,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5FCFF',
     },
     map: {
+        flex: 2
+    },
+    picker: {
         flex: 1
     },
     welcome: {

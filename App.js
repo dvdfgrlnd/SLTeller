@@ -6,7 +6,7 @@
 
 import React, { Component } from 'react';
 import CreateGeofence from './CreateGeofence';
-import ReportView from './ReportView';
+import ReportView from './StationPicker';
 import {
     AppRegistry,
     StyleSheet,
