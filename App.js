@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from 'react';
-import WeatherMap from './WeatherMap';
+import CreateGeofence from './CreateGeofence';
 import ReportView from './ReportView';
 import {
     AppRegistry,
@@ -21,7 +21,7 @@ export default class App extends Component {
     constructor(props) {
         super(props);
         this.routeNames = { map: 0, report: 1 };
-        this.routes = [{ id: this.routeNames.report }, { id: this.routeNames.map }];
+        this.routes = [{ id: this.routeNames.map }, { id: this.routeNames.report },];
         this.state = {};
         this.renderScene = this.renderScene.bind(this);
     }
@@ -40,33 +40,24 @@ export default class App extends Component {
         var view;
         switch (route.id) {
             case this.routeNames.map:
-                view = (<WeatherMap />);
+                view = (<CreateGeofence />);
                 break;
-            case this.routeNames:
+            case this.routeNames.report:
                 view = <ReportView />
+                break;
+            default:
+                view = (<CreateGeofence />);
                 break;
         }
         var onChange = (id) => {
-            var index = this.state.routes.findIndex((d) => d.index === route.id);
-            var currentRoute = this.state.routes[index];
-            if (id === 0 && currentRoute.id !== 0) {
-                navigator.pop();
-            } else if (id === 1 && currentRoute.id !== 1) {
-                navigator.push(this.state.routes[1]);
-            }
+            var index = this.routes.findIndex((d) => d.id === id);
+            var newRoute = this.routes[index];
+            navigator.jumpTo(newRoute);
         }
         changeToMap = () => onChange(this.routeNames.map);
         changeToReport = () => onChange(this.routeNames.report);
         return (
             <View style={styles.container} >
-                <View style={styles.navbar}>
-                    <TouchableHighlight style={styles.navbutton} onPress={changeToMap}>
-                        <Text style={styles.menuText}>Map</Text>
-                    </TouchableHighlight>
-                    <TouchableHighlight style={styles.navbutton} onPress={changeToReport}>
-                        <Text style={styles.menuText}>Report</Text>
-                    </TouchableHighlight>
-                </View >
                 {view}
             </View >
         )
@@ -100,3 +91,13 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
 });
+/*
+                <View style={styles.navbar}>
+                    <TouchableHighlight style={styles.navbutton} onPress={changeToMap}>
+                        <Text style={styles.menuText}>Map</Text>
+                    </TouchableHighlight>
+                    <TouchableHighlight style={styles.navbutton} onPress={changeToReport}>
+                        <Text style={styles.menuText}>Report</Text>
+                    </TouchableHighlight>
+                </View >
+*/

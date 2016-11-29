@@ -11,6 +11,7 @@ import {
     AppRegistry,
     Button,
     Image,
+    NativeModules,
     StyleSheet,
     Text,
     TouchableHighlight,
@@ -29,6 +30,12 @@ export default class WeatherMap extends Component {
     }
 
     render() {
+        var geo = NativeModules.GeofenceAndroid;
+        var id = "geoOne";
+        var lat = 37.7882
+        var lon = -122.4324;
+        var rad = 100;
+        geo.registerGeofence(id, lat, lon, rad);
         return (
             <View style={styles.container}>
                 <IconRow style={styles.icons} icons={this.state.weatherList} checked={this.state.weather} />
@@ -44,7 +51,8 @@ export default class WeatherMap extends Component {
         console.log(this.state.weather.selected);
         var weather = {};
         weather.sky = this.state.weather.selected;
-        var url = 'http://weathersoon.herokuapp.com';
+        //var url = 'http://weathersoon.herokuapp.com';
+        var url = 'localhost:5000/weather/';
         fetch(url, {
             method: 'POST',
             headers: {
@@ -53,8 +61,7 @@ export default class WeatherMap extends Component {
             },
             body: JSON.stringify(
                 weather)
-        })
-
+        });
     }
 }
 
