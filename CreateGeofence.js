@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5FCFF',
     },
     map: {
-        flex: 2
+        flex: 0.5
     },
     picker: {
         flex: 1
