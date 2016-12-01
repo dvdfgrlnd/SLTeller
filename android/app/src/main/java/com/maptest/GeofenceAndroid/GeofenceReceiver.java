@@ -6,9 +6,11 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
@@ -23,7 +25,7 @@ import static com.facebook.react.common.ReactConstants.TAG;
  * Created by david on 11/27/16.
  */
 
-public class GeofenceReceiver extends BroadcastReceiver{
+public class GeofenceReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
@@ -42,7 +44,12 @@ public class GeofenceReceiver extends BroadcastReceiver{
 
             // Get the geofences that were triggered. A single event can trigger
             // multiple geofences.
-            List triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
+            // Triggering geofences should be > 0 unless the Android developers are stupid in their heads
+            String requestId = triggeringGeofences.get(0).getRequestId();
+            SharedPreferences sharedPref = context.getSharedPreferences(requestId, Context.MODE_PRIVATE);
+            String stationSiteId = sharedPref.getString(Constants.STATION_SITEID, "");
+            String lineNumber = sharedPref.getString(Constants.LINE_NUMBER, "");
 
             // Get the transition details as a String.
             final String geofenceTransitionDetails = geofencingEvent.getTriggeringLocation().toString();
@@ -50,7 +57,7 @@ public class GeofenceReceiver extends BroadcastReceiver{
             // Send notification and log the transition details.
             Log.i(TAG, geofenceTransitionDetails);
             Log.i(TAG, "geofenceReceiver");
-            sendNotification(context,geofenceTransitionDetails);
+            sendNotification(context, geofenceTransitionDetails);
             vibrate(context);
         } else {
             // Log the error.
@@ -59,12 +66,12 @@ public class GeofenceReceiver extends BroadcastReceiver{
 
     }
 
-    private void vibrate(Context context){
-        Vibrator vib=(Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+    private void vibrate(Context context) {
+        Vibrator vib = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         vib.vibrate(2000);
     }
 
-    private void sendNotification(Context context,String notificationDetails) {
+    private void sendNotification(Context context, String notificationDetails) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.notification_icon)

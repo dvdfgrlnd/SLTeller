@@ -35,6 +35,7 @@ export default class StationPicker extends Component {
         var linePress = (line) => () => this._onLinePress(line);
         var selectedStation = null;
 
+
         return (
             <View style={styles.container}>
                 <TextInput style={styles.stationName} onChangeText={this._onTextChange} />
@@ -100,11 +101,16 @@ export default class StationPicker extends Component {
     }
 
     _onLinePress(line) {
-        this.state.selectedLine
+        this.props.settings.selectedLine = line;
+        this.state.selectedLine = line;
+        this.setState(this.state);
     }
 
     async _onStationPress(station) {
+        // Set selected station to state to mark the station in the list
         this.state.selectedStation = station;
+        // Also set it in props to make it available to the parent component
+        this.props.settings.selectedStation = station;
         let url = 'http://sl.se/api/sv/RealTime/GetDepartures/' + station.SiteId;
         let response = await fetch(url);
         let responseJson = await response.json();
@@ -137,24 +143,6 @@ export default class StationPicker extends Component {
         });
         return transportGroups;
     }
-
-
-    sendReport() {
-        console.log(this.state.weather.selected);
-        var weather = {};
-        weather.sky = this.state.weather.selected;
-        //var url = 'http://weathersoon.herokuapp.com';
-        var url = 'localhost:5000/weather/';
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(
-                weather)
-        });
-    }
 }
 
 const styles = StyleSheet.create({
@@ -176,6 +164,11 @@ const styles = StyleSheet.create({
     transportLine: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        margin: 10,
+    },
+    line: {
+        color: '#fff',
+        fontSize: 20,
     },
     selectionItem: {
         color: '#fff',

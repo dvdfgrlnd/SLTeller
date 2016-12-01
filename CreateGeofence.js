@@ -8,6 +8,7 @@ import React, { Component } from 'react';
 import MapView from 'react-native-maps';
 import {
     AppRegistry,
+    Button,
     NativeModules,
     StyleSheet,
     Text,
@@ -26,9 +27,11 @@ export default class CreateGeofence extends Component {
                 },
                 title: "geofence",
                 description: "geofence center",
-            }
+            },
+            settings: {},
         };
         this.onMapClick = this.onMapClick.bind(this);
+        this._onButtonClick = this._onButtonClick.bind(this);
     }
 
     render() {
@@ -52,9 +55,14 @@ export default class CreateGeofence extends Component {
                         key={this.state.markers.title}
                         />
                 </MapView>
-                <StationPicker style={styles.picker} />
+                <StationPicker style={styles.picker} settings={this.state.settings} />
+                <Button onPress={this._onButtonClick} title="create geofence" />
             </View>
         );
+    }
+
+    _onButtonClick() {
+        console.log(this.state.settings);
     }
 
     onMapClick(event) {
