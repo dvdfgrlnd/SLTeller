@@ -6,7 +6,6 @@
 
 import React, { Component } from 'react';
 import MapView from 'react-native-maps';
-import IconRow from './IconRow'
 import {
     AppRegistry,
     Button,
@@ -102,6 +101,8 @@ export default class StationPicker extends Component {
 
     _onLinePress(line) {
         this.props.settings.selectedLine = line;
+        // Send event to parent component to indicate change in settings
+        this.props.onChange();
         this.state.selectedLine = line;
         this.setState(this.state);
     }
@@ -111,6 +112,8 @@ export default class StationPicker extends Component {
         this.state.selectedStation = station;
         // Also set it in props to make it available to the parent component
         this.props.settings.selectedStation = station;
+        // Send event to parent component to indicate change in settings
+        this.props.onChange();
         let url = 'http://sl.se/api/sv/RealTime/GetDepartures/' + station.SiteId;
         let response = await fetch(url);
         let responseJson = await response.json();
@@ -138,10 +141,22 @@ export default class StationPicker extends Component {
                     }
                     return p;
                 }, []);
-                obj.uniqueLines = lines;
+                obj.uniqueLines = lines.sort(this.compare);
             });
         });
         return transportGroups;
+    }
+
+    compare(a, b) {
+        var diff = parseInt(a.LineNumber.replace(/\D/g, '')) - parseInt(b.LineNumber.replace(/\D/g, ''));
+        if (diff < 0) {
+            return -1;
+        }
+        if (diff > 0) {
+            return 1;
+        }
+        // a must be equal to b
+        return 0;
     }
 }
 

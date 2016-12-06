@@ -14,10 +14,8 @@ import {
     Text,
     View
 } from 'react-native';
-import StationPicker from './StationPicker';
-import Geofence from './Geofence';
 
-export default class CreateGeofence extends Component {
+export default class RemoveGeofence extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -42,6 +40,12 @@ export default class CreateGeofence extends Component {
         this._onButtonClick = this._onButtonClick.bind(this);
         this._onSettingsChange = this._onSettingsChange.bind(this);
 
+        Geofence.getGeofences((array) => {
+            this.state.geofences = array.map((g) => {
+                var s = g.split("|");
+
+            });
+        });
     }
 
     render() {
@@ -66,7 +70,6 @@ export default class CreateGeofence extends Component {
                         strokeWidth={10}>
                     </MapView.Circle>
                 </MapView>
-                <StationPicker style={styles.picker} settings={this.state.settings} onChange={this._onSettingsChange} />
 
                 <Button disabled={disableButton} onPress={this._onButtonClick} title="create geofence" />
             </View>
@@ -94,11 +97,12 @@ export default class CreateGeofence extends Component {
         ) {
             return;
         }
+        var geo = NativeModules.GeofenceAndroid;
         var id = "geoTwo";
         var lat = coordinate.latitude;
         var lon = coordinate.longitude;
         var rad = 100;
-        Geofence.registerGeofence(lat, lon, rad, this.state.settings.selectedStation.SiteId.toString(), this.state.settings.selectedLine.Destination, this.state.settings.selectedLine.LineNumber.toString());
+        geo.registerGeofence(lat, lon, rad, this.state.settings.selectedStation.SiteId.toString(), this.state.settings.selectedLine.Destination, this.state.settings.selectedLine.LineNumber.toString());
     }
 }
 

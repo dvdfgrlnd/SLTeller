@@ -91,6 +91,10 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
                 FLAG_UPDATE_CURRENT);
     }
 
+    private void removeGeofence(){
+
+    }
+
     protected void onStart() {
         Log.d("MainActivity", "onStart");
         mGoogleApiClient.connect();
@@ -104,15 +108,21 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        int i = 0;
         Intent intent = this.getIntent();
-        String id = intent.getStringExtra(Constants.FENCEID);
-        double latitude = intent.getDoubleExtra(Constants.LATITUDE, 0);
-        double longitude = intent.getDoubleExtra(Constants.LONGITUDE, 0);
-        float radius = intent.getFloatExtra(Constants.RADIUS, 0);
+        int action=intent.getIntExtra(Constants.ACTION,-1);
+        switch (action){
+            case Constants.CREATE:
+                String id = intent.getStringExtra(Constants.FENCEID);
+                double latitude = intent.getDoubleExtra(Constants.LATITUDE, 0);
+                double longitude = intent.getDoubleExtra(Constants.LONGITUDE, 0);
+                float radius = intent.getFloatExtra(Constants.RADIUS, 0);
 
-        createGeofence(id, latitude, longitude, radius);
-
+                createGeofence(id, latitude, longitude, radius);
+                break;
+            case Constants.REMOVE:
+                removeGeofence();
+                break;
+        }
         this.finish();
     }
 

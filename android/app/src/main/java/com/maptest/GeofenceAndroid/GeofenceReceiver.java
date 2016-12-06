@@ -11,15 +11,37 @@ import android.os.Vibrator;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingEvent;
+import com.google.gson.Gson;
 import com.maptest.MainActivity;
 import com.maptest.R;
+import com.maptest.TransportInfo.BusGroup;
+import com.maptest.TransportInfo.Data;
+import com.maptest.TransportInfo.DepartureRoot;
+import com.maptest.TransportInfo.IDeparture;
+import com.maptest.TransportInfo.MetroGroup;
+import com.maptest.TransportInfo.TrainGroup;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import static com.facebook.react.common.ReactConstants.TAG;
+import static com.maptest.Utils.TimeParser.parseMin;
 
 /**
  * Created by david on 11/27/16.
@@ -49,6 +71,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
             String requestId = triggeringGeofences.get(0).getRequestId();
             SharedPreferences sharedPref = context.getSharedPreferences(requestId, Context.MODE_PRIVATE);
             String stationSiteId = sharedPref.getString(Constants.STATION_SITEID, "");
+            String destination = sharedPref.getString(Constants.DESTINATION, "");
             String lineNumber = sharedPref.getString(Constants.LINE_NUMBER, "");
 
             // Get the transition details as a String.
@@ -57,8 +80,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
             // Send notification and log the transition details.
             Log.i(TAG, geofenceTransitionDetails);
             Log.i(TAG, "geofenceReceiver");
-            sendNotification(context, geofenceTransitionDetails);
-            vibrate(context);
+            getDepartures(context, destination, lineNumber);
         } else {
             // Log the error.
             Log.e(TAG, Integer.toString(geofenceTransition));
@@ -66,17 +88,95 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
     }
 
-    private void vibrate(Context context) {
-        Vibrator vib = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        vib.vibrate(2000);
+    private void getDepartures(final Context context, final String destination, final String lineNumber) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = "http://sl.se/api/sv/RealTime/GetDepartures/9001";
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Gson gson = new Gson();
+                        try {
+                            DepartureRoot dr = gson.fromJson(response, DepartureRoot.class);
+                            List<IDeparture> list = new ArrayList<>();
+                            Data data = dr.getData();
+                            for (BusGroup group : dr.getData().getBusGroups()) {
+                                list.addAll(group.getDepartures());
+                            }
+                            for (MetroGroup group : dr.getData().getMetroGroups()) {
+                                list.addAll(group.getDepartures());
+                            }
+                            for (TrainGroup group : dr.getData().getTrainGroups()) {
+                                list.addAll(group.getDepartures());
+                            }
+                            List<IDeparture> filteredDepartures = new ArrayList<>();
+                            for (IDeparture dep : list) {
+                                if (dep.getDestination().equals(destination) && dep.getLineNumber().equals(lineNumber)) {
+                                    filteredDepartures.add(dep);
+                                }
+                            }
+                            Collections.sort(filteredDepartures, new Comparator<IDeparture>() {
+                                @Override
+                                public int compare(IDeparture iDeparture, IDeparture t1) {
+                                    int diff = parseMin(iDeparture.getDisplayTime()) - parseMin(t1.getDisplayTime());
+                                    if (diff < 0)
+                                        return -1;
+                                    else if (diff > 0)
+                                        return 1;
+                                    else
+                                        return 0;
+                                }
+                            });
+                            for (IDeparture dep : filteredDepartures) {
+                                Log.d("MainActivity", String.format("%s, %s, %s", dep.getDestination(), dep.getLineNumber(), dep.getDisplayTime()));
+                            }
+                            //vibrate(context, parseMin("10:02"));
+                            vibrate(context, parseMin(filteredDepartures.get(0).getDisplayTime()));
+                            //sendNotification(context, destination + ", " + lineNumber + ", " + Integer.toString(parseMin(filteredDepartures.get(0).getDisplayTime())));
+                        } catch (Exception e) {
+                        }
+                    }
+                }
+                , new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+            }
+        }
+
+        );
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+
     }
+
+    private void vibrate(Context context, int minutes) {
+        Vibrator vib = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+        if (minutes == 0) {
+            vib.vibrate(1000);
+            return;
+        } else if (minutes > 5) {
+            vib.vibrate(3000);
+            return;
+        }
+        long pause = 500;
+        long active = 500;
+        long[] pattern = new long[2 * minutes];
+        for (int i = 0; i < minutes; i++) {
+            pattern[(2 * i)] = active;
+            pattern[(2 * i) + 1] = pause;
+        }
+        vib.vibrate(pattern, -1);
+    }
+
 
     private void sendNotification(Context context, String notificationDetails) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.notification_icon)
                         .setContentTitle("My notification")
-                        .setContentText("Hello World!");
+                        .setContentText(notificationDetails);
 // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(context, MainActivity.class);
 

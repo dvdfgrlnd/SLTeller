@@ -6,7 +6,7 @@
 
 import React, { Component } from 'react';
 import CreateGeofence from './CreateGeofence';
-import ReportView from './StationPicker';
+import RemoveGeofence from './RemoveGeofence';
 import {
     AppRegistry,
     StyleSheet,
@@ -20,8 +20,8 @@ export default class App extends Component {
 
     constructor(props) {
         super(props);
-        this.routeNames = { map: 0, report: 1 };
-        this.routes = [{ id: this.routeNames.map }, { id: this.routeNames.report },];
+        this.routeNames = { create: 0, remove: 1 };
+        this.routes = [{ id: this.routeNames.create }, { id: this.routeNames.remove },];
         this.state = {};
         this.renderScene = this.renderScene.bind(this);
     }
@@ -39,14 +39,15 @@ export default class App extends Component {
     renderScene(route, navigator) {
         var view;
         switch (route.id) {
-            case this.routeNames.map:
+            case this.routeNames.create:
                 view = (<CreateGeofence />);
                 break;
-            case this.routeNames.report:
-                view = <ReportView />
+            case this.routeNames.remove:
+                view = <RemoveGeofence />
                 break;
             default:
                 view = (<CreateGeofence />);
+                route.id = this.routeNames.create;
                 break;
         }
         var onChange = (id) => {
@@ -54,10 +55,20 @@ export default class App extends Component {
             var newRoute = this.routes[index];
             navigator.jumpTo(newRoute);
         }
-        changeToMap = () => onChange(this.routeNames.map);
-        changeToReport = () => onChange(this.routeNames.report);
+        changeToMap = () => onChange(this.routeNames.create);
+        changeToReport = () => onChange(this.routeNames.remove);
+        var names = this.routeNames;
         return (
             <View style={styles.container} >
+                <View style={styles.navbar}>
+                    <TouchableHighlight style={(route.id === names.create) ? styles.selectedNavbutton : styles.navbutton} onPress={changeToMap}>
+                        <Text style={styles.menuText}>Create</Text>
+                    </TouchableHighlight>
+                    <TouchableHighlight style={(route.id === names.remove) ? styles.selectedNavbutton : styles.navbutton} onPress={changeToReport}>
+                        <Text style={styles.menuText}>Remove</Text>
+                    </TouchableHighlight>
+                </View >
+
                 {view}
             </View >
         )
@@ -72,6 +83,11 @@ const styles = StyleSheet.create({
     },
     navbutton: {
         flex: 1,
+        margin: 10,
+    },
+    selectedNavbutton: {
+        flex: 2,
+        padding: 10,
     },
     navbar: {
         flexDirection: 'row',
