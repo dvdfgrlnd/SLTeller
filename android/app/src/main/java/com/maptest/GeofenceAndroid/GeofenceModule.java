@@ -99,15 +99,25 @@ public class GeofenceModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void removeGeofence() {
+    public void removeGeofence(String requestId, Callback c) {
+        SharedPreferences sharedPrefFiles = getCurrentActivity().getSharedPreferences(Constants.FILES, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPrefFiles.edit();
+        editor.remove(requestId);
+        editor.commit();
+        // Remove the sharedpreferences for this geofence.
+        // NOTE: This will not remove the file! Should use a separate SQLite instance instead of SharedPreferences
+        getCurrentActivity().getSharedPreferences(requestId, Context.MODE_PRIVATE).edit().clear().commit();
+
         Intent intent = new Intent(getCurrentActivity(), GeofenceActivity.class);
-        intent.putExtra(Constants.ACTION, Constants.CREATE);
+        intent.putExtra(Constants.ACTION, Constants.REMOVE);
+        intent.putExtra(Constants.FENCEID, requestId);
         getCurrentActivity().startActivity(intent);
+        c.invoke();
     }
 
     @ReactMethod
     public void registerGeofence(double latitude, double longitude, double radius, String stationSiteId, String destination, String lineNumber) {
-        String requestId = String.format(Locale.ENGLISH, "%s|%s|%s|f|%f", stationSiteId, destination, lineNumber, latitude, longitude);
+        String requestId = String.format(Locale.ENGLISH, "%s|%s|%s|%f|%f", stationSiteId, destination, lineNumber, latitude, longitude);
         // Save all requestId's because it's stupidly hard to retrieve all files
         SharedPreferences sharedPrefFiles = getCurrentActivity().getSharedPreferences(Constants.FILES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefFiles.edit();

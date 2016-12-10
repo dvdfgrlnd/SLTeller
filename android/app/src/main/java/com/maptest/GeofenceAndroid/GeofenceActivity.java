@@ -25,6 +25,7 @@ import com.google.android.gms.location.LocationServices;
 
 import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class GeofenceActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
     private GoogleApiClient mGoogleApiClient;
@@ -91,8 +92,8 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
                 FLAG_UPDATE_CURRENT);
     }
 
-    private void removeGeofence(){
-
+    private void removeGeofence(String id){
+        LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, Arrays.asList(id));
     }
 
     protected void onStart() {
@@ -110,9 +111,9 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
     public void onConnected(@Nullable Bundle bundle) {
         Intent intent = this.getIntent();
         int action=intent.getIntExtra(Constants.ACTION,-1);
+        String id = intent.getStringExtra(Constants.FENCEID);
         switch (action){
             case Constants.CREATE:
-                String id = intent.getStringExtra(Constants.FENCEID);
                 double latitude = intent.getDoubleExtra(Constants.LATITUDE, 0);
                 double longitude = intent.getDoubleExtra(Constants.LONGITUDE, 0);
                 float radius = intent.getFloatExtra(Constants.RADIUS, 0);
@@ -120,7 +121,7 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
                 createGeofence(id, latitude, longitude, radius);
                 break;
             case Constants.REMOVE:
-                removeGeofence();
+                removeGeofence(id);
                 break;
         }
         this.finish();

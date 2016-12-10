@@ -12,45 +12,34 @@ import {
     NativeModules,
     StyleSheet,
     Text,
+    TouchableHighlight,
     View
 } from 'react-native';
+import Geofence from './Geofence';
 
 export default class RemoveGeofence extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            markers: {
-                latlng: {
-                    latitude: 37.78833,
-                    longitude: -122.4324,
-                },
-                title: "geofence",
-                description: "geofence center",
-            },
-            settings: {},
+            geofences: [],
             region: {
                 latitude: 37.78825,
                 longitude: -122.4324,
                 latitudeDelta: 0.0922,
                 longitudeDelta: 0.0421,
             },
-            radius: 100,
         };
         this.onMapClick = this.onMapClick.bind(this);
-        this._onButtonClick = this._onButtonClick.bind(this);
-        this._onSettingsChange = this._onSettingsChange.bind(this);
+        this._onPress = this._onPress.bind(this);
+        this.updateGeofences = this.updateGeofences.bind(this);
 
-        Geofence.getGeofences((array) => {
-            this.state.geofences = array.map((g) => {
-                var s = g.split("|");
-
-            });
-        });
+        this.updateGeofences();
     }
+
+
 
     render() {
         var t = this.state;
-        var disableButton = !(t.settings.selectedLine && t.settings.selectedStation && t.location);
         return (
             <View style={styles.container}>
                 <MapView
@@ -58,37 +47,47 @@ export default class RemoveGeofence extends Component {
                     showsUserLocation={true}
                     onPress={this.onMapClick}
                     >
-                    <MapView.Marker
-                        coordinate={this.state.markers.latlng}
-                        title={this.state.markers.title}
-                        description={this.state.markers.description}
-                        key={this.state.markers.title}
-                        />
-                    <MapView.Circle
-                        center={this.state.markers.latlng}
-                        radius={this.state.radius}
-                        strokeWidth={10}>
-                    </MapView.Circle>
+                    {this.state.geofences.map((g) =>
+                        <MapView.Marker
+                            coordinate={g.latlng}
+                            title={g.destination + ", " + g.lineNumber}
+                            key={g.requestId}
+                            onPress={() => this._onPress(g)}
+                            >
+                            <TouchableHighlight underlayColor='#dddddd'>
+                                <View style={styles.calloutText}>
+                                    <Text style={styles.markerText}>{g.destination + ", " + g.lineNumber}</Text>
+                                </View>
+                            </TouchableHighlight>
+                        </MapView.Marker>
+                    )}
                 </MapView>
-
-                <Button disabled={disableButton} onPress={this._onButtonClick} title="create geofence" />
             </View>
         );
     }
 
-    _onSettingsChange() {
-        // Rerender the component for potential change in settings
-        this.setState(this.state);
+    _onPress(event) {
+        console.log(event)
+        Geofence.removeGeofence(event.requestId, () => {
+            this.updateGeofences();
+        });
     }
 
-    _onButtonClick() {
-        this.createGeofence();
+    updateGeofences() {
+        Geofence.getGeofences((array) => {
+            this.state.geofences = array.map((g) => {
+                var s = g.split("|");
+                var o = { siteId: s[0], destination: s[1], lineNumber: s[2], latlng: { latitude: parseFloat(s[3]), longitude: parseFloat(s[4]) }, requestId: g };
+                return o;
+            });
+            this.setState(this.state);
+        });
     }
 
     onMapClick(event) {
-        this.state.location = event.nativeEvent.coordinate;
-        this.state.markers.latlng = this.state.location;
-        this.setState(this.state);
+        //this.state.location = event.nativeEvent.coordinate;
+        //this.state.markers.latlng = this.state.location;
+        //this.setState(this.state);
     }
 
     createGeofence() {
@@ -111,6 +110,11 @@ const styles = StyleSheet.create({
         flex: 1,
         flexDirection: 'column',
         backgroundColor: '#F5FCFF',
+    },
+    markerText: {
+        fontSize: 30,
+        color: '#fff',
+        backgroundColor: '#efefef'
     },
     map: {
         flex: 0.5

@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     },
     typeHeader: {
         color: '#fff',
-        fontSize: 26
+        fontSize: 24
     },
     transportLine: {
         flexDirection: 'row',
@@ -187,11 +187,11 @@ const styles = StyleSheet.create({
     },
     selectionItem: {
         color: '#fff',
-        fontSize: 23,
+        fontSize: 20,
     },
     stations: {
         color: '#fff',
-        fontSize: 25,
+        fontSize: 20,
         textAlign: 'center'
     }
 });

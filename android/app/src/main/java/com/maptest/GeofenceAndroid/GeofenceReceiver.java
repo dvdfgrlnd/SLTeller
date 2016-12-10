@@ -156,7 +156,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
         if (minutes == 0) {
             vib.vibrate(1000);
             return;
-        } else if (minutes > 5) {
+        } else if (minutes > 8) {
             vib.vibrate(3000);
             return;
         }

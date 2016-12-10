@@ -47,6 +47,7 @@ export default class CreateGeofence extends Component {
     render() {
         var t = this.state;
         var disableButton = !(t.settings.selectedLine && t.settings.selectedStation && t.location);
+        console.log('render');
         return (
             <View style={styles.container}>
                 <MapView
