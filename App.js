@@ -24,6 +24,7 @@ export default class App extends Component {
         this.routes = [{ id: this.routeNames.create }, { id: this.routeNames.remove },];
         this.state = {};
         this.renderScene = this.renderScene.bind(this);
+        this._onDidFocus = this._onDidFocus.bind(this);
     }
 
     render() {
@@ -32,8 +33,15 @@ export default class App extends Component {
                 initialRoute={this.routes[0]}
                 initialRouteStack={this.routes}
                 renderScene={this.renderScene}
+                onDidFocus={this._onDidFocus}
                 />
         );
+    }
+
+    _onDidFocus(route) {
+        if (route.id === this.routeNames.remove) {
+            route.component.updateGeofences();
+        }
     }
 
     renderScene(route, navigator) {
@@ -43,7 +51,7 @@ export default class App extends Component {
                 view = (<CreateGeofence />);
                 break;
             case this.routeNames.remove:
-                view = <RemoveGeofence />
+                view = <RemoveGeofence ref={(r) => route.component = r} />
                 break;
             default:
                 view = (<CreateGeofence />);

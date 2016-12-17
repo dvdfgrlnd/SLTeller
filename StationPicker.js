@@ -34,7 +34,6 @@ export default class StationPicker extends Component {
         var linePress = (line) => () => this._onLinePress(line);
         var selectedStation = null;
 
-
         return (
             <View style={styles.container}>
                 <TextInput style={styles.stationName} onChangeText={this._onTextChange} />
@@ -92,11 +91,21 @@ export default class StationPicker extends Component {
         }
         if (text.length > 2) {
             let url = 'http://sl.se/api/TypeAhead/Find/' + text;
-            let response = await fetch(url);
-            let responseJson = await response.json();
-            this.state.stations = responseJson.data.filter((v) => v.SiteId != 0);
+            try {
+                let response = await fetch(url);
+                let responseJson = await response.json();
+                // Filter this due to some stations having same name but different SiteId which makes the list complain about multiple items with the same key (i.e. the name), could use the siteId in conjunction with name, but that would be confusing since you then have two items with the same name.
+                this.state.stations = responseJson.data.filter((v) => v.SiteId != 0).reduce((p, c) => p.findIndex((f) => this._isStationsEqual(f, c)) !== -1 ? p : p.concat(c), []);
+            } catch (err) {
+                console.log(err);
+                this.props.error("error fetching stations");
+            }
         }
         this.setState(this.state);
+    }
+
+    _isStationsEqual(a, b) {
+        return a.Name === b.Name;
     }
 
     _onLinePress(line) {
@@ -115,9 +124,13 @@ export default class StationPicker extends Component {
         // Send event to parent component to indicate change in settings
         this.props.onChange();
         let url = 'http://sl.se/api/sv/RealTime/GetDepartures/' + station.SiteId;
-        let response = await fetch(url);
-        let responseJson = await response.json();
-        this.state.transportLines = this.parseDepartures(responseJson);
+        try {
+            let response = await fetch(url);
+            let responseJson = await response.json();
+            this.state.transportLines = this.parseDepartures(responseJson);
+        } catch (err) {
+            this.props.error("error fetching transport groups");
+        }
 
         this.setState(this.state);
     }
@@ -133,6 +146,19 @@ export default class StationPicker extends Component {
         transportGroups.forEach((group) => {
             group.data.forEach((obj) => {
                 var dep = obj.Departures;
+                if (!dep) {
+                    var name;
+                    if (obj.TramGroups)
+                        name = 'TramGroups';
+                    else if (obj.TranCityGroups)
+                        name = 'TranCityGroups';
+                    else
+                        return
+
+                    dep = obj[name].reduce((p, c) => {
+                        return p.concat(c.Departures);
+                    }, []);
+                }
                 // Find unique lines
                 var lines = dep.reduce((p, c) => {
                     var index = p.findIndex((e) => (e.Destination === c.Destination && e.LineNumber === c.LineNumber));
@@ -167,7 +193,10 @@ const styles = StyleSheet.create({
         backgroundColor: '#239EFF',
     },
     stationName: {
-        color: '#fff'
+        color: '#000',
+        fontSize: 20,
+        height: 40,
+        backgroundColor: '#F5FCFF',
     },
     selected: {
         borderWidth: 2,

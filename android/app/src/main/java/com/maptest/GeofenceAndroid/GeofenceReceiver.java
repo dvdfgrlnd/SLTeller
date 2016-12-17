@@ -80,7 +80,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
             // Send notification and log the transition details.
             Log.i(TAG, geofenceTransitionDetails);
             Log.i(TAG, "geofenceReceiver");
-            getDepartures(context, destination, lineNumber);
+            getDepartures(context, destination, lineNumber,stationSiteId);
         } else {
             // Log the error.
             Log.e(TAG, Integer.toString(geofenceTransition));
@@ -88,9 +88,9 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
     }
 
-    private void getDepartures(final Context context, final String destination, final String lineNumber) {
+    private void getDepartures(final Context context, final String destination, final String lineNumber, final String siteId) {
         RequestQueue queue = Volley.newRequestQueue(context);
-        String url = "http://sl.se/api/sv/RealTime/GetDepartures/9001";
+        String url = "http://sl.se/api/sv/RealTime/GetDepartures/"+siteId;
 
         // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
@@ -154,10 +154,10 @@ public class GeofenceReceiver extends BroadcastReceiver {
     private void vibrate(Context context, int minutes) {
         Vibrator vib = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         if (minutes == 0) {
-            vib.vibrate(1000);
+            vib.vibrate(2000);
             return;
         } else if (minutes > 8) {
-            vib.vibrate(3000);
+            vib.vibrate(4000);
             return;
         }
         long pause = 500;

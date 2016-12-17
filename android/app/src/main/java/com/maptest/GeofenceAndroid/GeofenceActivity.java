@@ -4,6 +4,7 @@ package com.maptest.GeofenceAndroid;
  * Created by david on 11/26/16.
  */
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -16,10 +17,12 @@ import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofenceStatusCodes;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 
@@ -92,8 +95,10 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
                 FLAG_UPDATE_CURRENT);
     }
 
-    private void removeGeofence(String id){
-        LocationServices.GeofencingApi.removeGeofences(mGoogleApiClient, Arrays.asList(id));
+    private void removeGeofence(String id) {
+        LocationServices.GeofencingApi.
+                removeGeofences(mGoogleApiClient, Arrays.asList(id))
+                .setResultCallback(this);
     }
 
     protected void onStart() {
@@ -110,9 +115,9 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         Intent intent = this.getIntent();
-        int action=intent.getIntExtra(Constants.ACTION,-1);
+        int action = intent.getIntExtra(Constants.ACTION, -1);
         String id = intent.getStringExtra(Constants.FENCEID);
-        switch (action){
+        switch (action) {
             case Constants.CREATE:
                 double latitude = intent.getDoubleExtra(Constants.LATITUDE, 0);
                 double longitude = intent.getDoubleExtra(Constants.LONGITUDE, 0);
@@ -123,8 +128,14 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
             case Constants.REMOVE:
                 removeGeofence(id);
                 break;
+            default:
+                // Create error result status, for non-existent action
+                intent = new Intent();
+                intent.putExtra(Constants.STATUS, Constants.STATUS_OK);
+                this.setResult(Activity.RESULT_CANCELED, intent);
+                this.finish();
+                break;
         }
-        this.finish();
     }
 
     @Override
@@ -144,6 +155,14 @@ public class GeofenceActivity extends AppCompatActivity implements GoogleApiClie
 
     @Override
     public void onResult(@NonNull Status status) {
+        Intent intent = new Intent();
+        if (CommonStatusCodes.SUCCESS == status.getStatusCode()) {
+            intent.putExtra(Constants.STATUS, Constants.STATUS_OK);
+        } else {
+            intent.putExtra(Constants.STATUS, Constants.STATUS_ERROR);
+        }
+        this.setResult(Activity.RESULT_OK, intent);
+        this.finish();
 
     }
 }

@@ -3,6 +3,7 @@ package com.maptest.GeofenceAndroid;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,6 +14,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.react.bridge.ActivityEventListener;
+import com.facebook.react.bridge.BaseActivityEventListener;
 import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -45,45 +48,17 @@ import java.util.Map;
  */
 public class GeofenceModule extends ReactContextBaseJavaModule {
 
-    protected GoogleApiClient mGoogleApiClient;
+    private Callback mResultCallback;
+    private SQLiteDatabase db;
 
     public GeofenceModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        reactContext.addActivityEventListener(mActivityEventListener);
     }
 
     @Override
     public String getName() {
         return "GeofenceAndroid";
-    }
-
-    @ReactMethod
-    public void testJson() {
-        // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(getCurrentActivity());
-        String url = "http://sl.se/api/sv/RealTime/GetDepartures/9001";
-
-// Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        Gson gson = new Gson();
-                        try {
-                            DepartureRoot dr = gson.fromJson(response, DepartureRoot.class);
-                            int t = 1;
-                        } catch (Exception e) {
-                        }
-                    }
-                }
-                , new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-            }
-        }
-
-        );
-// Add the request to the RequestQueue.
-        queue.add(stringRequest);
     }
 
     @ReactMethod
@@ -100,6 +75,7 @@ public class GeofenceModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void removeGeofence(String requestId, Callback c) {
+        mResultCallback=c;
         SharedPreferences sharedPrefFiles = getCurrentActivity().getSharedPreferences(Constants.FILES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPrefFiles.edit();
         editor.remove(requestId);
@@ -111,12 +87,13 @@ public class GeofenceModule extends ReactContextBaseJavaModule {
         Intent intent = new Intent(getCurrentActivity(), GeofenceActivity.class);
         intent.putExtra(Constants.ACTION, Constants.REMOVE);
         intent.putExtra(Constants.FENCEID, requestId);
-        getCurrentActivity().startActivity(intent);
-        c.invoke();
+        getCurrentActivity().startActivityForResult(intent,0);
     }
 
     @ReactMethod
-    public void registerGeofence(double latitude, double longitude, double radius, String stationSiteId, String destination, String lineNumber) {
+    public void registerGeofence(double latitude, double longitude, double radius, String stationSiteId, String destination, String lineNumber, Callback callback) {
+        mResultCallback=callback;
+
         String requestId = String.format(Locale.ENGLISH, "%s|%s|%s|%f|%f", stationSiteId, destination, lineNumber, latitude, longitude);
         // Save all requestId's because it's stupidly hard to retrieve all files
         SharedPreferences sharedPrefFiles = getCurrentActivity().getSharedPreferences(Constants.FILES, Context.MODE_PRIVATE);
@@ -140,7 +117,18 @@ public class GeofenceModule extends ReactContextBaseJavaModule {
         intent.putExtra(Constants.LATITUDE, latitude);
         intent.putExtra(Constants.LONGITUDE, longitude);
         intent.putExtra(Constants.RADIUS, (float) radius);
-        getCurrentActivity().startActivity(intent);
+        getCurrentActivity().startActivityForResult(intent,0);
     }
+
+    private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
+
+        @Override
+        public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
+            if(mResultCallback!=null){
+                mResultCallback.invoke(data.getIntExtra(Constants.STATUS, 0));
+            }
+        }
+    };
+
 
 }

@@ -16,4 +16,7 @@ public class Constants {
     public static final String ACTION = "action";
     public static final int CREATE = 1;
     public static final int REMOVE = 0;
+    public static final String STATUS = "status";
+    public static final int STATUS_OK = 0;
+    public static final int STATUS_ERROR = 1;
 }

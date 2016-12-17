@@ -74,6 +74,7 @@ export default class RemoveGeofence extends Component {
     }
 
     updateGeofences() {
+        console.log('update');
         Geofence.getGeofences((array) => {
             this.state.geofences = array.map((g) => {
                 var s = g.split("|");
