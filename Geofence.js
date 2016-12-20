@@ -2,4 +2,4 @@
 
 import { NativeModules } from 'react-native';
 
-module.exports = NativeModules.GeofenceAndroid;
+module.exports = NativeModules.GeofenceModule;

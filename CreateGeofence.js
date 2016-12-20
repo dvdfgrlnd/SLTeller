@@ -31,7 +31,7 @@ export default class CreateGeofence extends Component {
                 title: "geofence",
                 description: "geofence center",
             },
-            settings: {},
+            selectedDepartures: [],
             region: {
                 latitude: 37.78825,
                 longitude: -122.4324,
@@ -52,7 +52,7 @@ export default class CreateGeofence extends Component {
 
     render() {
         var t = this.state;
-        var disableButton = !(t.settings.selectedLine && t.settings.selectedStation && t.location);
+        var disableButton = !(this.state.selectedDepartures.length > 0 && this.state.location);
         // Set a timer to remove the status message after a while
         if (this.state.status) {
             var seconds = 12000;
@@ -78,7 +78,7 @@ export default class CreateGeofence extends Component {
                         strokeWidth={3}>
                     </MapView.Circle>
                 </MapView>
-                <StationPicker style={styles.picker} settings={this.state.settings} onChange={this._onSettingsChange} error={this._handleError} />
+                <StationPicker style={styles.picker} settings={this.state.selectedDepartures} onChange={this._onSettingsChange} error={this._handleError} />
 
                 <Button disabled={disableButton} onPress={this._onButtonClick} title="create geofence" />
             </View>
@@ -112,18 +112,23 @@ export default class CreateGeofence extends Component {
 
     createGeofence() {
         var coordinate = this.state.location;
-        if (!coordinate || !this.state.settings.selectedStation || !this.state.settings.selectedLine
-        ) {
+        if (!coordinate || this.state.selectedDepartures.length === 0) {
             return;
         }
-        var id = "geoTwo";
-        var lat = coordinate.latitude;
-        var lon = coordinate.longitude;
-        var rad = this.state.radius;
-        var siteId = this.state.settings.selectedStation.SiteId.toString();
-        var destination = this.state.settings.selectedLine.Destination;
-        var lineNumber = this.state.settings.selectedLine.LineNumber.toString();
-        Geofence.registerGeofence(lat, lon, rad, siteId, destination, lineNumber, this.registerCallback);
+        console.log(this.state.selectedDepartures);
+        var departures = this.state.selectedDepartures.map((item) => {
+            return {
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                radius: this.state.radius,
+                siteId: item.station.SiteId.toString(),
+                destination: item.line.Destination,
+                lineNumber: item.line.LineNumber.toString(),
+            };
+
+        });
+        var requestId = `${coordinate.latitude}|${coordinate.longitude}|${this.state.radius}`;
+        Geofence.registerGeofence({ requestId, departures: departures }, this.registerCallback);
     }
 
     registerCallback(status) {

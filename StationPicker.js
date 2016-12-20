@@ -33,11 +33,32 @@ export default class StationPicker extends Component {
         var stationPress = (station) => () => this._onStationPress(station);
         var linePress = (line) => () => this._onLinePress(line);
         var selectedStation = null;
+        console.log(this.props.settings);
 
         return (
-            <View style={styles.container}>
+            <ScrollView style={styles.container}>
                 <TextInput style={styles.stationName} onChangeText={this._onTextChange} />
-                <ScrollView style={styles.transportModes}>
+                {(() => {
+                    return this.props.settings.length > 0 ? <Text style={styles.typeHeader}>Selected</Text> : undefined;
+                })()}
+                <View style={styles.chosen}>
+                    {
+                        this.props.settings.map((item, i) => (
+                            <View style={styles.selectedDepartures} key={item.line.Destination + item.station.Name}>
+                                <Text style={styles.line}>{item.station.Name}</Text>
+                                <Text style={styles.line}>{item.line.Destination}</Text>
+                                <Text style={styles.line}>{item.line.LineNumber}</Text>
+                                <Button onPress={() => this._onRemove(i)} title='X' />
+                            </View>
+                        ))
+                    }
+                </View>
+                {(() => {
+                    return this.state.selectedStation ? <Text style={styles.typeHeader}>Stations</Text> : undefined;
+                })()
+                }
+
+                <View style={styles.transportModes}>
                     {
                         this.state.stations.map((station) => (
                             <TouchableHighlight style={this.state.selectedStation && station.Name === this.state.selectedStation.Name ? styles.selected : null} key={station.Name} onPress={stationPress(station)}>
@@ -45,9 +66,9 @@ export default class StationPicker extends Component {
                             </TouchableHighlight>
                         ))
                     }
-                </ScrollView>
+                </View>
 
-                <ScrollView style={styles.transportLines}>
+                <View style={styles.transportLines}>
                     {
                         this.state.transportLines.map((group) => {
                             return group.data.map((obj) => {
@@ -65,14 +86,21 @@ export default class StationPicker extends Component {
                                             ))
                                         }
                                     </View>
-                                )
-                            })
+                                );
+                            });
                         })
                     }
-                </ScrollView>
+                </View>
 
-            </View>
+            </ScrollView>
         );
+    }
+
+    _onRemove(index) {
+        this.props.settings.splice(index, 1);
+        // Send event to parent component to indicate change in settings
+        this.props.onChange();
+        this.setState(this.state);
     }
 
     getLineStyle(line) {
@@ -109,20 +137,22 @@ export default class StationPicker extends Component {
     }
 
     _onLinePress(line) {
-        this.props.settings.selectedLine = line;
         // Send event to parent component to indicate change in settings
         this.props.onChange();
         this.state.selectedLine = line;
+
+        // Add station and line to selectedDepartures
+        this.props.settings.push({ line, station: this.state.selectedStation });
+
+        // Send event to parent component to indicate change in settings
+        this.props.onChange();
+
         this.setState(this.state);
     }
 
     async _onStationPress(station) {
         // Set selected station to state to mark the station in the list
         this.state.selectedStation = station;
-        // Also set it in props to make it available to the parent component
-        this.props.settings.selectedStation = station;
-        // Send event to parent component to indicate change in settings
-        this.props.onChange();
         let url = 'http://sl.se/api/sv/RealTime/GetDepartures/' + station.SiteId;
         try {
             let response = await fetch(url);
@@ -204,6 +234,11 @@ const styles = StyleSheet.create({
     typeHeader: {
         color: '#fff',
         fontSize: 24
+    },
+    selectedDepartures: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        margin: 10,
     },
     transportLine: {
         flexDirection: 'row',

@@ -76,10 +76,11 @@ export default class RemoveGeofence extends Component {
     updateGeofences() {
         console.log('update');
         Geofence.getGeofences((array) => {
-            this.state.geofences = array.map((g) => {
-                var s = g.split("|");
-                var o = { siteId: s[0], destination: s[1], lineNumber: s[2], latlng: { latitude: parseFloat(s[3]), longitude: parseFloat(s[4]) }, requestId: g };
-                return o;
+            this.state.geofences = array.map((obj) => {
+                obj.latlng = { latitude: obj.latitude, longitude: obj.longitude };
+                delete obj.latitude;
+                delete obj.longitude;
+                return obj;
             });
             this.setState(this.state);
         });
@@ -91,19 +92,6 @@ export default class RemoveGeofence extends Component {
         //this.setState(this.state);
     }
 
-    createGeofence() {
-        var coordinate = this.state.location;
-        if (!coordinate || !this.state.settings.selectedStation || !this.state.settings.selectedLine
-        ) {
-            return;
-        }
-        var geo = NativeModules.GeofenceAndroid;
-        var id = "geoTwo";
-        var lat = coordinate.latitude;
-        var lon = coordinate.longitude;
-        var rad = 100;
-        geo.registerGeofence(lat, lon, rad, this.state.settings.selectedStation.SiteId.toString(), this.state.settings.selectedLine.Destination, this.state.settings.selectedLine.LineNumber.toString());
-    }
 }
 
 const styles = StyleSheet.create({
