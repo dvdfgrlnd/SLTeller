@@ -62,7 +62,7 @@ export default class CreateGeofence extends Component {
             <View style={styles.container}>
                 <StatusRow message={this.state.status} />
                 <View style={styles.radiusContainer}>
-                    <Text style={styles.radiusText}>radius</Text>
+                    <Text style={styles.radiusText}>Radius</Text>
                     <TextInput style={styles.radiusInput} value={this.state.radius.toString()} keyboardType='numeric' onChangeText={this._onTextChanged} />
                 </View>
                 <MapView
@@ -154,7 +154,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        backgroundColor: '#F5FCFF',
+        backgroundColor: '#fff',
+        margin:2,
     },
     radiusContainer: {
         flexDirection: 'row',
@@ -165,11 +166,12 @@ const styles = StyleSheet.create({
     radiusInput: {
         flex: 3,
         height: 40,
-        backgroundColor: '#F5FCFF',
+        backgroundColor: '#fff',
+        textAlign:'center',
     },
     radiusText: {
         fontSize: 23,
-
+        color:'#333',
         flex: 1,
     },
     map: {

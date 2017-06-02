@@ -108,12 +108,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        backgroundColor: '#F5FCFF',
+        backgroundColor: '#fff',
     },
     markerText: {
-        fontSize: 30,
-        color: '#fff',
-        backgroundColor: '#efefef'
+        fontSize: 25,
+        color: '#333',
+        backgroundColor: '#fafafa',
+        padding:5,
+        borderColor: '#239eff',
+        borderRadius:10,
+        borderWidth: 2,
+        borderStyle: 'solid',
+    },
+    calloutText:{
     },
     map: {
         flex: 1
@@ -128,7 +135,7 @@ const styles = StyleSheet.create({
     },
     instructions: {
         textAlign: 'center',
-        color: '#333333',
+        color: '#333',
         marginBottom: 5,
     },
 });

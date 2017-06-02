@@ -28,19 +28,34 @@ export default class StationPicker extends Component {
         this.getLineStyle = this.getLineStyle.bind(this);
     }
 
+    componentDidUpdate() {
+        if (this.state.scrollToTransport) {
+            this.state.scrollToTransport = false;
+            // Scroll down to the departures
+            this.refs.Transport.measure((x, y, width, height, pageX, pageY) => {
+                var obj = { x: 0, y: pageY * 0.5, animated: true };
+                console.log(obj);
+                console.log(y, height, pageY);
+                this.refs.mainScroll.scrollTo(obj);
+            });
+        }
+    }
+
     render() {
         // Create function for sending along the pressed station
         var stationPress = (station) => () => this._onStationPress(station);
         var linePress = (line) => () => this._onLinePress(line);
         var selectedStation = null;
-        console.log(this.props.settings);
 
         return (
-            <ScrollView style={styles.container}>
-                <TextInput style={styles.stationName} onChangeText={this._onTextChange} />
-                {(() => {
-                    return this.props.settings.length > 0 ? <Text style={styles.typeHeader}>Selected</Text> : undefined;
-                })()}
+            <ScrollView style={styles.container} ref="mainScroll">
+                <View style={styles.stationNameView}>
+                    <Text style={styles.stationHeader}>Station</Text>
+                    <TextInput style={styles.stationName} onChangeText={this._onTextChange} />
+                    {(() => {
+                        return this.props.settings.length > 0 ? <Text style={styles.typeHeader}>Selected</Text> : undefined;
+                    })()}
+                </View>
                 <View style={styles.chosen}>
                     {
                         this.props.settings.map((item, i) => (
@@ -57,7 +72,7 @@ export default class StationPicker extends Component {
                 })()
                 }
 
-                <View style={styles.transportModes} onLayout={(event) => { this.state.stationPos = event.nativeEvent.layout; } }>
+                <View style={styles.transportModes} onLayout={(event) => { this.state.stationPos = event.nativeEvent.layout; }}>
                     {
                         this.state.stations.map((station) => (
                             <TouchableHighlight style={this.state.selectedStation && station.Name === this.state.selectedStation.Name ? styles.selected : null} key={station.Name} onPress={stationPress(station)}>
@@ -67,7 +82,7 @@ export default class StationPicker extends Component {
                     }
                 </View>
 
-                <View style={styles.transportLines}>
+                <View style={styles.transportLines} collapsable={false} ref="Transport">
                     {
                         this.state.transportLines.map((group) => {
                             return group.data.map((obj) => {
@@ -149,8 +164,9 @@ export default class StationPicker extends Component {
         this.setState(this.state);
     }
 
+    // Sets the selected station state to mark the selected station in the list
     async _onStationPress(station) {
-        // Set selected station to state to mark the station in the list
+        this.state.scrollToTransport = true;
         this.state.selectedStation = station;
         let url = 'http://sl.se/api/sv/RealTime/GetDepartures/' + station.SiteId;
         try {
@@ -219,10 +235,21 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        backgroundColor: '#239EFF',
+        backgroundColor: '#fff',
+    },
+    stationNameView:{
+        marginTop:10,
+        flex:1,
+        flexDirection: 'row',
+    },
+    stationHeader: {
+        flex:1,
+        fontSize:23,
+        color:'#333',
     },
     stationName: {
-        color: '#000',
+        flex:3,
+        color: '#333',
         fontSize: 20,
         height: 40,
         backgroundColor: '#F5FCFF',
@@ -231,7 +258,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
     },
     typeHeader: {
-        color: '#fff',
+        color: '#333',
         fontSize: 24
     },
     selectedDepartures: {
@@ -245,19 +272,19 @@ const styles = StyleSheet.create({
         margin: 10,
     },
     line: {
-        color: '#fff',
+        color: '#333',
         fontSize: 20,
     },
     chosenLine: {
-        color: '#fff',
+        color: '#333',
         fontSize: 17,
     },
     selectionItem: {
-        color: '#fff',
+        color: '#333',
         fontSize: 20,
     },
     stations: {
-        color: '#fff',
+        color: '#333',
         fontSize: 20,
         textAlign: 'center'
     }

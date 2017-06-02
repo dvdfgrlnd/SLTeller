@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         flexDirection: 'column',
-        backgroundColor: '#F5FCFF',
+        backgroundColor: '#fff',
     },
     navbutton: {
         flex: 1,
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     navbar: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        backgroundColor: '#F5FCFF',
+        backgroundColor: '#fff',
     },
     map: {
         flex: 1
@@ -108,10 +108,11 @@ const styles = StyleSheet.create({
     menuText: {
         fontSize: 20,
         textAlign: 'center',
+        color:'#333'
     },
     instructions: {
         textAlign: 'center',
-        color: '#333333',
+        color: '#111',
         marginBottom: 5,
     },
 });

@@ -39,7 +39,7 @@ export default class StatusRow extends Component {
 //        backgroundColor: '#0DC3FF',
 const styles = StyleSheet.create({
     weatherContainer: {
-        backgroundColor: '#565656',
+        backgroundColor: '#fff',
     },
     statusText: {
         fontSize: 23,
