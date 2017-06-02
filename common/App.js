@@ -92,10 +92,12 @@ const styles = StyleSheet.create({
     navbutton: {
         flex: 1,
         margin: 10,
+        opacity: 0.4,
     },
     selectedNavbutton: {
         flex: 2,
         padding: 10,
+        opacity: 1,
     },
     navbar: {
         flexDirection: 'row',
