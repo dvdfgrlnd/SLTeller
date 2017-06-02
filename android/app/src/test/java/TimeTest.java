@@ -2,8 +2,7 @@
  * Created by david on 12/4/16.
  */
 
-import com.maptest.GeofenceAndroid.GeofenceReceiver;
-import com.maptest.Utils.TimeParser;
+import com.teller.Utils.TimeParser;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,9 +15,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.regex.Pattern;
 
-import static com.maptest.Utils.TimeParser.parseMin;
+import static com.teller.Utils.TimeParser.parseMin;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

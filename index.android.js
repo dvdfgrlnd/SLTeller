@@ -5,7 +5,7 @@
  */
 
 import React, { Component } from 'react';
-import App from './App';
+import App from './common/App';
 import {
   AppRegistry,
   StyleSheet,
